@@ -11,6 +11,11 @@
 #pragma once
 #include <stdint.h>
 
+#define KEY_LENGTH 16
+#define DEFAULT_KEY {                               \
+    0x12, 0x34, 0x56, 0x78, 0x87, 0x65, 0x43, 0x21, \
+    0xab, 0xab, 0x12, 0x34, 0xdf, 0xec, 0x2f, 0x3c} 
+
 //----------------------------------
 // Function prototypes
 //----------------------------------

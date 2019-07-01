@@ -11,9 +11,9 @@
 #include "crypto.h"
 #include "bits.h"
 #include "boxes.h"
-#include "verbose.h" // For verbose output
+//#include "verbose.h" // For verbose output
 
-#include <stdio.h>
+//#include <stdio.h>
 #include <stdlib.h>
 
 //----------------------------------
@@ -35,9 +35,9 @@ key_schedule(uint64_t key_high,
         // if(Output) v_key_start();
 
         if (KeySize80) {
-            printf(
-              "ERROR: key needs to be 128-bit for the GIFT block cipher\n");
-            exit(1);
+            //printf(
+            //  "ERROR: key needs to be 128-bit for the GIFT block cipher\n");
+            //exit(1);
         } else { // 128 Bit
 
             // if(Output) v_k128_init(key_high, key_low);
@@ -93,8 +93,8 @@ key_schedule(uint64_t key_high,
         }
         //  //if(Output) v_final();
     } else {
-        printf("RAM problem!\n");
-        exit(0);
+        //printf("RAM problem!\n");
+        //exit(0);
     }
     return subkey;
 }
@@ -184,24 +184,24 @@ encrypt(uint64_t in, uint64_t* subkey, uint16_t Rounds, _Bool Roundwise)
     uint16_t RoundNr;
     uint64_t text;
 
-    if (Roundwise)
-        v_enc_start(in);
+    //if (Roundwise)
+        //v_enc_start(in);
 
     for (RoundNr = 1; RoundNr < Rounds; RoundNr++) { // Start "for"
         uint16_t temp;
 #define SboxNr temp
 #define PBit temp
 
-        if (Roundwise)
-            v_roundstart(RoundNr, subkey[RoundNr - 1]);
+        //if (Roundwise)
+            //v_roundstart(RoundNr, subkey[RoundNr - 1]);
 
         //----------------------------------
         // Xor with roundkey
         //----------------------------------
         text = in ^ subkey[RoundNr - 1];
 
-        if (Roundwise)
-            v_after_xor(text);
+        //if (Roundwise)
+            //v_after_xor(text);
 
         //----------------------------------
         // S-Boxes
@@ -215,8 +215,8 @@ encrypt(uint64_t in, uint64_t* subkey, uint16_t Rounds, _Bool Roundwise)
             text = rotate4l_64(text);   // next(rotate by one nibble)
         }
 
-        if (Roundwise)
-            v_after_s(text);
+        //if (Roundwise)
+            //v_after_s(text);
 
         //----------------------------------
         // P-Box
@@ -227,15 +227,15 @@ encrypt(uint64_t in, uint64_t* subkey, uint16_t Rounds, _Bool Roundwise)
             out |= ((text >> (63 - Pbox[PBit])) & 1);
         }
 
-        if (Roundwise)
-            v_after_p(in);
+        //if (Roundwise)
+            //v_after_p(in);
 
     } // End "for"
 
     text = in ^ subkey[RoundNr - 1];
 
-    if (Roundwise)
-        v_enc_final(text, subkey[RoundNr - 1]);
+    //if (Roundwise)
+        //v_enc_final(text, subkey[RoundNr - 1]);
 
     return text;
 }
@@ -261,8 +261,8 @@ encrypt128(uint64_t  inHigh,
     uint64_t textHigh;
     uint64_t textLow;
 
-    if (Roundwise)
-        v_enc_start128(inHigh, inLow);
+    //if (Roundwise)
+        //v_enc_start128(inHigh, inLow);
 
     for (RoundNr = 1; RoundNr < Rounds; RoundNr++) {
 
@@ -272,16 +272,16 @@ encrypt128(uint64_t  inHigh,
 
         // printf("Round %u round key %016"PRIx64" %016"PRIx64 "\n\n", RoundNr,
         // subkey[2*(RoundNr-1)+1], subkey[2*(RoundNr-1)]);
-        if (Roundwise)
-            v_roundstart128(RoundNr,
-                            subkey[2 * (RoundNr - 1) + 1],
-                            subkey[2 * (RoundNr - 1)]);
+        //if (Roundwise)
+            //v_roundstart128(RoundNr,
+            //                subkey[2 * (RoundNr - 1) + 1],
+            //                subkey[2 * (RoundNr - 1)]);
 
         textLow  = inLow ^ subkey[2 * (RoundNr - 1)];
         textHigh = inHigh ^ subkey[2 * (RoundNr - 1) + 1];
 
-        if (Roundwise)
-            v_after_xor128(textHigh, textLow);
+        //if (Roundwise)
+            //v_after_xor128(textHigh, textLow);
         // printf("Encryption round %i key low index:%i key high index
         // %i\n",RoundNr, (2*(RoundNr-1)),(2*(RoundNr-1)+1));
 
@@ -302,8 +302,8 @@ encrypt128(uint64_t  inHigh,
             textHigh = rotate4l_64(textHigh);
             textLow = rotate4l_64(textLow); // next(rotate by one nibble)
         }
-        if (Roundwise)
-            v_after_s128(textHigh, textLow);
+        //if (Roundwise)
+            //v_after_s128(textHigh, textLow);
 
         outHigh = 0;
         outLow  = 0;
@@ -333,19 +333,19 @@ encrypt128(uint64_t  inHigh,
                 }
             }
         }
-        if (Roundwise)
-            v_after_p128(inHigh, inLow);
+        //if (Roundwise)
+            //v_after_p128(inHigh, inLow);
     }
     // printf("Encryption final XOR round %i key low index:%i key high index
     // %i\n",RoundNr, (2*(RoundNr-1)),(2*(RoundNr-1)+1));
     retVal[0] = inLow ^ subkey[2 * (RoundNr - 1)];
     retVal[1] = inHigh ^ subkey[2 * (RoundNr - 1) + 1];
 
-    if (Roundwise)
-        v_enc_final128(retVal[1],
-                       retVal[0],
-                       subkey[2 * (RoundNr - 1) + 1],
-                       subkey[2 * (RoundNr - 1)]);
+    //if (Roundwise)
+        //v_enc_final128(retVal[1],
+        //               retVal[0],
+        //               subkey[2 * (RoundNr - 1) + 1],
+        //               subkey[2 * (RoundNr - 1)]);
 
     return retVal;
 }
@@ -364,8 +364,8 @@ decrypt(uint64_t in, uint64_t* subkey, uint16_t Rounds, _Bool Roundwise)
     uint16_t RoundNr;
     uint64_t text;
 
-    if (Roundwise)
-        v_dec_start(in);
+    //if (Roundwise)
+        //v_dec_start(in);
 
     for (RoundNr = 1; RoundNr <= Rounds; RoundNr++) { // Start "for"
         //uint64_t key_temp;
@@ -373,16 +373,16 @@ decrypt(uint64_t in, uint64_t* subkey, uint16_t Rounds, _Bool Roundwise)
 #define SboxNr temp
 #define PBit temp
 
-        if (Roundwise)
-            v_roundstart(RoundNr, subkey[Rounds - RoundNr]);
+        //if (Roundwise)
+            //v_roundstart(RoundNr, subkey[Rounds - RoundNr]);
 
         //----------------------------------
         // Xor with roundkey
         //----------------------------------
         text = in ^ subkey[Rounds - RoundNr];
 
-        if (Roundwise)
-            v_after_xor(text);
+        //if (Roundwise)
+            //v_after_xor(text);
 
         //----------------------------------
         // P-Box
@@ -393,8 +393,8 @@ decrypt(uint64_t in, uint64_t* subkey, uint16_t Rounds, _Bool Roundwise)
             out |= ((text >> (63 - PboxInv[PBit])) & 1);
         }
 
-        if (Roundwise)
-            v_after_p(out);
+        //if (Roundwise)
+            //v_after_p(out);
 
         //----------------------------------
         // S-Boxes
@@ -408,13 +408,13 @@ decrypt(uint64_t in, uint64_t* subkey, uint16_t Rounds, _Bool Roundwise)
             out  = rotate4l_64(out);
         }
 
-        if (Roundwise)
-            v_after_s(out);
+        //if (Roundwise)
+            //v_after_s(out);
 
     } // End "for"
 
-    if (Roundwise)
-        v_final();
+    //if (Roundwise)
+        //v_final();
 
     return text;
 }
@@ -435,23 +435,23 @@ decrypt128(uint64_t  inHigh,
     uint64_t textHigh;
     uint64_t textLow;
     uint16_t temp;
-    if (Roundwise)
-        v_dec_start128(inHigh, inLow);
+    //if (Roundwise)
+        //v_dec_start128(inHigh, inLow);
 
     // XOR operation
 
     for (RoundNr = 1; RoundNr <= Rounds; RoundNr++) {
-        if (Roundwise)
-            v_roundstart128(RoundNr,
-                            subkey[(2 * Rounds) - (2 * (RoundNr)) + 1],
-                            subkey[(2 * Rounds) - (2 * (RoundNr))]);
+        //if (Roundwise)
+            //v_roundstart128(RoundNr,
+            //                subkey[(2 * Rounds) - (2 * (RoundNr)) + 1],
+            //                subkey[(2 * Rounds) - (2 * (RoundNr))]);
         // printf("Decyrption key low:%i key high
         // %i\n",((2*Rounds)-(2*(RoundNr))),(2*Rounds)-(2*(RoundNr))+1);
         textHigh = inHigh ^ subkey[(2 * Rounds) - (2 * (RoundNr)) + 1];
         textLow  = inLow ^ subkey[(2 * Rounds) - (2 * (RoundNr))];
 
-        if (Roundwise)
-            v_after_xor128(textHigh, textLow);
+        //if (Roundwise)
+            //v_after_xor128(textHigh, textLow);
 
         // In the last round nly the textHigh and textLow are used that
         // is why retVal gets text rather tahn out.
@@ -479,8 +479,8 @@ decrypt128(uint64_t  inHigh,
                 }
             }
         }
-        if (Roundwise)
-            v_after_p128(outHigh, outLow);
+        //if (Roundwise)
+            //v_after_p128(outHigh, outLow);
 
         for (SboxNr = 0; SboxNr < 16; SboxNr++) {
             uint16_t SboxValHigh;
@@ -498,11 +498,11 @@ decrypt128(uint64_t  inHigh,
             outHigh = rotate4l_64(outHigh);
             outLow  = rotate4l_64(outLow); // next(rotate by one nibble)
         }
-        if (Roundwise)
-            v_after_s128(outHigh, outLow);
+        //if (Roundwise)
+            //v_after_s128(outHigh, outLow);
     }
-    if (Roundwise)
-        v_final();
+    //if (Roundwise)
+        //v_final();
 
     retVal[1] = textHigh;
     retVal[0] = textLow;
