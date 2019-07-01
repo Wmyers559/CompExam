@@ -30,4 +30,4 @@
 #define setBit(src, in, bitNum) (((uint64_t)in << bitNum) | (uint64_t)src)
 
 #define rotateRight16Bit(in, bitNum)                                           \
-    (((in >> bitNum) | (in << (16 - bitNum))) & ((1 << 16) - 1))
+    (((in >> bitNum) | (in << (16 - bitNum))) & (0xffff))
