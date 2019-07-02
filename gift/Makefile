@@ -7,7 +7,7 @@ CC 			:= clang
 AVR-CC 		:= avr-gcc
 ARM-CC		:= arm-none-eabi-gcc
 
-CFLAGS		:= -Wall -Wpedantic -std=c99
+CFLAGS		:= -Wall -Wpedantic -std=c99 -g
 AVR-FLAGS 	:= -mmcu=atxmega128d3
 ARM-FLAGS 	:=
 
