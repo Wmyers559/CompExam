@@ -72,4 +72,4 @@ tags
 [._]*.un~
 
 # Project specific ignores:
-bin/*
+bin/
