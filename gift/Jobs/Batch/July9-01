@@ -11,6 +11,7 @@
 #SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
+#SBATCH --output=outJuly9-01.txt
 
 
 ../../bin/giftCycle -e -f -k ../Input/key128.txt -t ../Input/plainJuly9-01.txt
