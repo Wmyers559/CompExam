@@ -14,7 +14,7 @@ ARM-FLAGS 	:=
 
 .PHONY: all intel arm avr clean 
 
-all: intel
+all: intel intel2
 
 bin/%.o: %.c
 	@mkdir -p bin
@@ -22,6 +22,8 @@ bin/%.o: %.c
 
 intel: bin/gift.o bin/verbose.o bin/comline.o bin/crypto.o
 	$(CC) $(CFLAGS) $^ -o bin/gift
+intel2: bin/giftCycle.o bin/verbose.o bin/comline.o bin/crypto.o
+	$(CC) $(CFLAGS) $^ -o bin/giftCycle
 
 ##### Don't run these yet, they aren't finished #####
 arm: bin/gift.o bin/verbose.o bin/comline.o bin/crypto.o
