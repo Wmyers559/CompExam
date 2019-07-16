@@ -40,7 +40,9 @@ const uint8_t SboxInv[16] = // Changed to use GIFT structure base 3 oxf occurs i
  */
   
   
-  
+
+// Gift like look up tables
+  /* 
 const uint8_t Pbox[32] = {0,9,18,27,24,1,10,19,
                             16,25,2,11,8,17,26,3,
                             4,13,22,31,28,5,14,23,
@@ -53,8 +55,9 @@ const uint8_t PboxInv[32] = {0,5,10,15,16,21,26,31,
                             4,9,14,3,20,25,30,19
     
 };
+*/
   
-  /* PRESENT style look up table
+  //PRESNT Like look up tables
 const uint8_t PboxInv[32] = { 0,4,8,12,16,20,24,28,
                                 1,5,9,13,17,21,25,29,
                                 2,6,10,14,18,22,26,30,
@@ -66,8 +69,9 @@ const uint8_t Pbox[32] = { 0, 8,16, 24,1,9,17,25,
                             4,12,20,28,5,13,21,29,
                             6,14,22,30,7,15,23,31
 };
-*/
 
+
+// //Gift like 128 bit version
 
 const uint8_t Pbox128Inv[64] = { 0,  5,  10, 15, 16, 21, 26, 31, 32, 37, 42,
                               47, 48, 53, 58, 63, 12, 1,  6,  11, 28, 17,
