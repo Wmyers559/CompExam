@@ -31,7 +31,7 @@
 uint8_t
 encrypt(uint64_t in, uint64_t* subkey, uint16_t Rounds);
 
-uint8_t*
+uint8_t
 encrypt128(uint64_t inHigh, uint64_t inLow, uint64_t* subkey, uint16_t Rounds);
 
 // These encrypt and generate the key schedule on the fly, saving memory at the
@@ -43,7 +43,7 @@ uint8_t
 encrypt128_fly(uint8_t* state, uint8_t* key, uint16_t Rounds);
 
 //----------------------------------
-// Decryption
+// Decryption (TODO)
 //----------------------------------
 
 uint64_t
@@ -61,7 +61,7 @@ uint64_t*
 decrypt128_fly(uint64_t inHigh, uint64_t inLow, uint16_t Rounds);
 
 //----------------------------------
-// Key scheduling
+// Key scheduling (TODO)
 //----------------------------------
 
 uint64_t*

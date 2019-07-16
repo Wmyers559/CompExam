@@ -15,13 +15,13 @@
 //----------------------------------
 
 // These encrypt the plaintext using a pregenerated subkey array
-uint64_t
+uint8_t
 encrypt(uint64_t in, uint64_t* subkey, uint16_t Rounds)
 {
     return 0;
 }
 
-uint64_t*
+uint8_t
 encrypt128(uint64_t inHigh, uint64_t inLow, uint64_t* subkey, uint16_t Rounds)
 {
     return 0;
@@ -45,7 +45,6 @@ encrypt_fly(uint8_t* state, uint8_t* key, uint16_t Rounds)
     uint8_t round;
     uint8_t save1;
     uint8_t save2;
-    uint8_t subkey[32][8];
     round = 0;
 
     do {

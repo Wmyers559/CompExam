@@ -46,6 +46,7 @@ please contact '''lightweigth@crypto.rub.de'''
 
 // Include-file
 #include <stdint.h>
+#include <stdio.h>
 
 int
 main(void)
@@ -56,10 +57,10 @@ main(void)
                                  0xb, 0x4, 0x6, 0x3, 0x0, 0x7, 0x9, 0xa };
     //	Input values
     uint8_t key[] = {
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+        0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99
     };
     volatile uint8_t state[] = {
-        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+        0xba, 0xdc, 0x0f, 0xfe, 0xeb, 0xad, 0xf0, 0x0d
     };
     //	Counter
     uint8_t i = 0;
@@ -71,11 +72,11 @@ main(void)
     uint8_t bit_destination     = 0;
     uint8_t temp_pLayer[8];
     //	Key scheduling variables
-    uint8_t      round;
+    uint8_t      round = 0;
     uint8_t      save1;
     uint8_t      save2;
     uint8_t      subkey[32][8];
-    volatile int eingabe;
+    volatile int eingabe = 0;
     //	****************** Encryption **************************
     if (eingabe == 0) {
         round = 0;
@@ -242,5 +243,11 @@ main(void)
     }
     //	****************** End addRoundkey *********************
     //	****************** End Decryption **********************
+
+    for (int i = 0; i < 8; i++) {
+        printf("%02hhx", state[i]);
+    }
+    printf("\n");
+
     return 0;
 }
