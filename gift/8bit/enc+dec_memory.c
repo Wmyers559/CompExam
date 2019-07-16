@@ -100,7 +100,7 @@ main(void)
             for (i = 0; i < 64; i++) {
                 position = (16 * i) % 63; // arithmetic calculation of the
                                           // pLayer
-                if (i == 63) // exception for bit 63
+                if (i == 63)              // exception for bit 63
                     position = 63;
                 element_source      = i / 8;
                 bit_source          = i % 8;
@@ -208,7 +208,7 @@ main(void)
             for (i = 0; i < 64; i++) {
                 position = (4 * i) % 63; // arithmentic calculation of the
                                          // pLayer
-                if (i == 63) // exception for bit 63
+                if (i == 63)             // exception for bit 63
                     position = 63;
                 element_source      = i / 8;
                 bit_source          = i % 8;
