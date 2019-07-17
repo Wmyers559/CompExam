@@ -93,6 +93,7 @@ encrypt_fly(uint8_t* state, uint8_t* key, uint16_t Rounds)
 
     uint8_t u[2] = {0};
     uint8_t v[2] = {0};
+    uint8_t k[4] = {0};
 
 
     // Setup key state
@@ -110,6 +111,22 @@ encrypt_fly(uint8_t* state, uint8_t* key, uint16_t Rounds)
 
         // introduce keystate to the round key
         for (i = 0; i < 8; i++) {
+            uint8_t j = 4 * i;
+            k[j / 8]       |= ((v[0] >> i) & 0x1) << (j % 8);
+            k[(j + 1) / 8] |= ((u[0] >> i) & 0x1) << ((j + 1) % 8);
+            j <<= 1;
+            k[j / 8]       |= ((v[1] >> i) & 0x1) << (j % 8);
+            k[(j + 1) / 8] |= ((u[1] >> i) & 0x1) << ((j + 1) % 8);
+        }
+
+        // Add in constants
+        for (i = 0, uint8_t c = constants_time(); i < 6; i++) {
+            // Constants are inserted at bit positions 23, 19, 15, 11, 7, 3
+            uint8_t j = 3 + 4 * i;
+            k[j / 8]       |= ((v[0] >> i) & 0x1) << (j % 8);
+
+        }
+
 
         //	****************** addRoundkey *************************
         i = 0;
