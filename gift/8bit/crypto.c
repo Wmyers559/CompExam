@@ -54,6 +54,48 @@ constants_space(uint8_t advance, uint8_t reset)
     return c;
 }
 
+/**
+ * Computes the round key for the given round and key state. it returns the
+ * value in `k`, which should point to an array of eight bytes to store the
+ * round key in.
+ */
+
+uint8_t 
+round_key64(uint8_t *key_state, uint8_t round, uint8_t *k)
+{
+    uint8_t i;
+    uint8_t u[2] = {0};
+    uint8_t v[2] = {0};
+
+    //	Clean this up?
+    u[0] = key_state[0];
+    u[1] = key_state[1];
+    v[0] = key_state[2];
+    v[1] = key_state[3];
+
+    // introduce keystate to the round key
+    for (i = 0; i < 8; i++) {
+        uint8_t j = 4 * i;
+        k[j / 8]       |= ((v[0] >> i) & 0x1) << (j % 8);
+        k[(j + 1) / 8] |= ((u[0] >> i) & 0x1) << ((j + 1) % 8);
+        j <<= 1;
+        k[j / 8]       |= ((v[1] >> i) & 0x1) << (j % 8);
+        k[(j + 1) / 8] |= ((u[1] >> i) & 0x1) << ((j + 1) % 8);
+    }
+
+    // Add in constants
+    for (i = 0, uint8_t c = constants_time(round); i < 6; i++) {
+        // Constants are inserted at bit positions 23, 19, 15, 11, 7, 3
+        uint8_t j = 3 + 4 * i;
+        k[j / 8] |= ((c >> i) & 0x1) << (j % 8);
+    }
+
+    // unconditionally set the upper bit on the round key
+    k[7] |= 0x80;
+
+    return 0
+}
+
 //----------------------------------
 // Encryption
 //----------------------------------
@@ -87,13 +129,10 @@ encrypt_fly(uint8_t* state, uint8_t* key, uint16_t Rounds)
     uint8_t temp_pLayer[8];
     //	Key scheduling variables
     uint8_t key_state[16];
+    uint8_t rot[4] = {0};
     uint8_t round = 0;
-    uint8_t save1;
-    uint8_t save2;
 
-    uint8_t u[2] = {0};
-    uint8_t v[2] = {0};
-    uint8_t k[4] = {0};
+    uint8_t k[8] = {0};
 
 
     // Setup key state
@@ -102,36 +141,12 @@ encrypt_fly(uint8_t* state, uint8_t* key, uint16_t Rounds)
     }
 
     do {
-        // keyschedule here, i guess?
-        //	Clean this up?
-        u[0] = key_state[0];
-        u[1] = key_state[1];
-        v[0] = key_state[2];
-        v[1] = key_state[3];
-
-        // introduce keystate to the round key
-        for (i = 0; i < 8; i++) {
-            uint8_t j = 4 * i;
-            k[j / 8]       |= ((v[0] >> i) & 0x1) << (j % 8);
-            k[(j + 1) / 8] |= ((u[0] >> i) & 0x1) << ((j + 1) % 8);
-            j <<= 1;
-            k[j / 8]       |= ((v[1] >> i) & 0x1) << (j % 8);
-            k[(j + 1) / 8] |= ((u[1] >> i) & 0x1) << ((j + 1) % 8);
-        }
-
-        // Add in constants
-        for (i = 0, uint8_t c = constants_time(); i < 6; i++) {
-            // Constants are inserted at bit positions 23, 19, 15, 11, 7, 3
-            uint8_t j = 3 + 4 * i;
-            k[j / 8]       |= ((v[0] >> i) & 0x1) << (j % 8);
-
-        }
-
+        round_key64(key_state, round, k);
 
         //	****************** addRoundkey *************************
         i = 0;
         do {
-            state[i] = state[i] ^ key[i + 2];
+            state[i] = state[i] ^ k[i];
             i++;
         } while (i <= 7);
         //	****************** sBox ********************************
@@ -140,15 +155,13 @@ encrypt_fly(uint8_t* state, uint8_t* key, uint16_t Rounds)
             state[i] = Sbox[state[i] >> 4] << 4 | Sbox[state[i] & 0xF];
         } while (i > 0);
         //	****************** pLayer ******************************
-        for (i = 0; i < 8; i++) // clearing of the temporary array temp_pLayer
-        {
-            temp_pLayer[i] = 0;
+        for (i = 0; i < 8; i++) {
+            temp_pLayer[i] = 0; // clearing of the temporary array temp_pLayer
         }
         for (i = 0; i < 64; i++) {
-            position = (16 * i) % 63; // arithmetic calculation of the
-                                      // pLayer
-            if (i == 63)              // exception for bit 63
-                position = 63;
+            // Ok then...
+            position = 4 * (i / 16) + 16 * ((3 * ((i % 16) / 4) + (i % 4)) % 4) + (i % 4); 
+
             element_source      = i / 8;
             bit_source          = i % 8;
             element_destination = position / 8;
@@ -160,40 +173,37 @@ encrypt_fly(uint8_t* state, uint8_t* key, uint16_t Rounds)
             state[i] = temp_pLayer[i];
         }
         //	****************** End pLayer **************************
+
         //	****************** Key Scheduling **********************
         //		on-the-fly key generation
-        save1 = key[0];
-        save2 = key[1];
+        rot[0] = key_state[0];
+        rot[1] = key_state[1];
+        rot[2] = key_state[2];
+        rot[3] = key_state[3];
         i     = 0;
         do {
-            key[i] = key[i + 2];
+            key_state[i] = key_state[i + 4];
             i++;
-        } while (i < 8);
-        key[8] = save1; // 61-bit left shift
-        key[9] = save2;
-        i      = 0;
-        save1  = key[0] & 7;
-        do {
-            key[i] = key[i] >> 3 | key[i + 1] << 5;
-            i++;
-        } while (i < 9);
-        key[9] = key[9] >> 3 | save1 << 5;
+        } while (i < 12); 
 
-        key[9] = Sbox[key[9] >> 4] << 4 | (key[9] & 0xF); // S-Box application
+        key_state[12] = (rot[1] >> 4) | (rot[0] << 4);
+        key_state[13] = (rot[0] >> 4) | (rot[1] << 4);
+        key_state[14] = (rot[2] >> 2) | (rot[3] << 6);
+        key_state[15] = (rot[3] >> 2) | (rot[2] << 6);
 
-        if ((round + 1) % 2 == 1) // round counter addition
-            key[1] ^= 128;
-        key[2] = ((((round + 1) >> 1) ^ (key[2] & 15)) | (key[2] & 240));
         //	****************** End Key Scheduling ******************
         round++;
     } while (round < Rounds);
+
+
     //	****************** addRoundkey *************************
+    round_key64(key_state, round, k);
     i = 0;
-    do // final key XOR
-    {
-        state[i] = state[i] ^ key[i + 2];
+    do { // final key XOR
+        state[i] = state[i] ^ k[i];
         i++;
     } while (i <= 7);
+
     return 0;
 }
 
