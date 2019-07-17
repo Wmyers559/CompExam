@@ -11,6 +11,50 @@
 #include <stdint.h>
 
 //----------------------------------
+// Utility functions
+//----------------------------------
+
+/**
+ * Generate the round constants utilizing the 6-bit affine LFSR described in the
+ * paper. This recalculates the entire sequence each time to save space and
+ * allow for multiple calls of the same round.
+ */
+
+uint8_t
+constants_time(uint8_t round)
+{
+    uint8_t c = 0;
+
+    for (uint8_t i = 0; i <= round; i++) {
+        c = ((c & 0x1f) << 1) | (1 ^ ((c >> 4) & 0x1) ^ ((c >> 5) &0x1));
+    }
+    return c;
+}
+
+
+/**
+ * Generate the round constants utilizing the 6-bit affine LFSR described in the
+ * paper. This stores the sequence in an internal static variable and only
+ * advances the sequence if the `advance` parameter is non-zero. To reset the
+ * sequence, the `reset` parameter should be non-zero.
+ */
+
+uint8_t
+constants_space(uint8_t advance, uint8_t reset)
+{
+    static uint8_t c = 0;
+
+    if (reset) {
+        c = 0;
+    }
+
+    if (advance) {
+        c = ((c & 0x1f) << 1) | (1 ^ ((c >> 4) & 0x1) ^ ((c >> 5) & 0x1));
+    }
+    return c;
+}
+
+//----------------------------------
 // Encryption
 //----------------------------------
 
@@ -42,12 +86,31 @@ encrypt_fly(uint8_t* state, uint8_t* key, uint16_t Rounds)
     uint8_t bit_destination     = 0;
     uint8_t temp_pLayer[8];
     //	Key scheduling variables
-    uint8_t round;
+    uint8_t key_state[16];
+    uint8_t round = 0;
     uint8_t save1;
     uint8_t save2;
-    round = 0;
+
+    uint8_t u[2] = {0};
+    uint8_t v[2] = {0};
+
+
+    // Setup key state
+    for (i = 0; i < XXXX; i++) {
+        //todo
+    }
 
     do {
+        // keyschedule here, i guess?
+        //	Clean this up?
+        u[0] = key_state[0];
+        u[1] = key_state[1];
+        v[0] = key_state[2];
+        v[1] = key_state[3];
+
+        // introduce keystate to the round key
+        for (i = 0; i < 8; i++) {
+
         //	****************** addRoundkey *************************
         i = 0;
         do {
