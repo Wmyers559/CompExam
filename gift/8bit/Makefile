@@ -5,6 +5,7 @@
 
 CC 			:= clang
 CFLAGS		:= -Wall -Wpedantic -std=c99 -g
+#CFLAGS		:= -Wall -Wpedantic -std=c99 -g -D NDEBUG
 
 .PHONY: all intel clean verify
 
