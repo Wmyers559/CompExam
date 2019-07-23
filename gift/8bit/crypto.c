@@ -66,11 +66,11 @@ round_key64(uint8_t* key_state, uint8_t round, uint8_t* k)
     uint8_t u[2] = { 0 };
     uint8_t v[2] = { 0 };
 
-    //	Clean this up?
-    u[0] = key_state[0];
-    u[1] = key_state[1];
-    v[0] = key_state[2];
-    v[1] = key_state[3];
+    // V = k_0 , U = k_1 (16 bit words)
+    v[0] = key_state[0];
+    v[1] = key_state[1];
+    u[0] = key_state[2];
+    u[1] = key_state[3];
 
     // introduce keystate to the round key
     for (i = 0; i < 8; i++) {
