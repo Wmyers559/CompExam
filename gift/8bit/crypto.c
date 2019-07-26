@@ -10,6 +10,8 @@
 #include "boxes.h"
 #include <stdint.h>
 
+#define True  1
+#define False 0
 //----------------------------------
 // Utility functions
 //----------------------------------
@@ -50,6 +52,7 @@ constants_space(uint8_t advance, uint8_t reset)
     if (advance) {
         c = ((c & 0x1f) << 1) | (1 ^ ((c >> 4) & 0x1) ^ ((c >> 5) & 0x1));
     }
+
     return c;
 }
 
@@ -60,7 +63,7 @@ constants_space(uint8_t advance, uint8_t reset)
  */
 
 uint8_t
-round_key64(uint8_t* key_state, uint8_t round, uint8_t* k)
+round_key64(const uint8_t* key_state, uint8_t round, uint8_t* k)
 {
     uint8_t i;
     uint8_t u[2] = { 0 };
@@ -73,17 +76,14 @@ round_key64(uint8_t* key_state, uint8_t round, uint8_t* k)
     u[1] = key_state[3];
 
     // introduce keystate to the round key
-    for (i = 0; i < 8; i++) {
+    for (i = 0; i < 16; i++) {
         uint8_t j = 4 * i;
-        k[j / 8] |= ((v[0] >> i) & 0x1) << (j % 8);
-        k[(j + 1) / 8] |= ((u[0] >> i) & 0x1) << ((j + 1) % 8);
-        j <<= 1;
-        k[j / 8] |= ((v[1] >> i) & 0x1) << (j % 8);
-        k[(j + 1) / 8] |= ((u[1] >> i) & 0x1) << ((j + 1) % 8);
+        k[j / 8] |= ((v[i / 8] >> (i % 8)) & 0x1) << (j % 8);
+        k[(j + 1) / 8] |= ((u[i / 8] >> (i % 8)) & 0x1) << ((j + 1) % 8);
     }
 
     // Add in constants
-    for (uint8_t c = constants_time(round), i = 0; i < 6; i++) {
+    for (uint8_t c = constants_space(True, False), i = 0; i < 6; i++) {
         // Constants are inserted at bit positions 23, 19, 15, 11, 7, 3
         uint8_t j = 3 + 4 * i;
         k[j / 8] |= ((c >> i) & 0x1) << (j % 8);
@@ -135,7 +135,7 @@ encrypt_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
     uint8_t k[8] = { 0 };
 
     do {
-        round_key64(key, round, k);
+        round_key64((const uint8_t *)key, round, k);
 
         //	****************** addRoundkey *************************
         i = 0;
@@ -157,10 +157,12 @@ encrypt_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
             position = 4 * (i / 16) +
                        16 * ((3 * ((i % 16) / 4) + (i % 4)) % 4) + (i % 4);
 
-            element_source      = i / 8;
-            bit_source          = i % 8;
-            element_destination = position / 8;
-            bit_destination     = position % 8;
+            // To retain exact compatability with William Unger's version, this
+            // also treats the MSB as bit 0 and goes from there :|
+            element_source      = (63 - position) / 8;
+            bit_source          = (63 - position) % 8;
+            element_destination = (63 - i) / 8;
+            bit_destination     = (63 - i) % 8;
             temp_pLayer[element_destination] |=
               ((text[element_source] >> bit_source) & 0x1) << bit_destination;
         }
