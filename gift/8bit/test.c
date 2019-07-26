@@ -31,10 +31,10 @@ main(void)
     uint8_t TXT[8] = { 0x0d, 0xf0, 0xad, 0xeb, 0xfe, 0x0f, 0xdc, 0xba };
     // TODO
 
-    encrypt_fly(TXT, GIFT_KEY, 31);
+    encrypt_fly(TXT, GIFT_KEY, 28);
 
-    for (int i = 0; i < 8; i++) {
-        //assert(TXT[i] == GIFT[i]);
+    for (int i = 7; i >= 0; i--) {
+        assert(TXT[i] == GIFT[7 - i]);
         printf("%02hhx", TXT[i]);
     }
     printf("\n");
