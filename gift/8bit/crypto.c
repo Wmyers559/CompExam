@@ -100,6 +100,45 @@ round_key64(const uint8_t* key_state, uint8_t round, uint8_t* k)
     return 0;
 }
 
+uint8_t
+round_key128(const uint8_t* key_state, uint8_t* k)
+{
+    //TODO
+    uint8_t i;
+    uint8_t u[2] = { 0 };
+    uint8_t v[2] = { 0 };
+
+    // V = k_0 , U = k_1 (16 bit words)
+    v[0] = key_state[0];
+    v[1] = key_state[1];
+    u[0] = key_state[2];
+    u[1] = key_state[3];
+
+    // zero out previous round key
+    for (i = 0; i < 8; i++) {
+        k[i] = 0;
+    }
+
+    // introduce keystate to the round key
+    for (i = 0; i < 16; i++) {
+        uint8_t j = 4 * i;
+        k[j / 8] |= ((v[i / 8] >> (i % 8)) & 0x1) << (j % 8);
+        k[(j + 1) / 8] |= ((u[i / 8] >> (i % 8)) & 0x1) << ((j + 1) % 8);
+    }
+
+    // Add in constants
+    for (uint8_t c = constants_space(True, False), i = 0; i < 6; i++) {
+        // Constants are inserted at bit positions 23, 19, 15, 11, 7, 3
+        uint8_t j = 3 + 4 * i;
+        k[j / 8] |= ((c >> i) & 0x1) << (j % 8);
+    }
+
+    // unconditionally set the upper bit on the round key
+    k[7] |= 0x80;
+
+    return 0;
+}
+
 //----------------------------------
 // Encryption
 //----------------------------------
@@ -209,8 +248,87 @@ encrypt_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
 }
 
 uint8_t
-encrypt128_fly(uint8_t* state, uint8_t* key, uint16_t Rounds)
+encrypt128_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
 {
+    //	Counter
+    uint8_t i = 0;
+    //	p variables
+    uint8_t position  = 0;
+    uint8_t elem_src  = 0;
+    uint8_t bit_src   = 0;
+    uint8_t elem_dest = 0;
+    uint8_t bit_dest  = 0;
+    uint8_t p_buf[16];
+    //	Key scheduling variables
+    uint8_t k[16]  = { 0 }; // Round key
+    uint8_t rot[4] = { 0 };
+
+    uint8_t round  = 0;
+
+
+    for (round = 0; round < Rounds; round++ ) {
+
+        round_key128((const uint8_t *)key, k);
+
+        //	****************** addRoundkey *************************
+        for (i = 0; i < 16; i++) {
+            text[i] = text[i] ^ k[i];
+        }
+
+        //	****************** sBox ********************************
+        //	Lazy here, exploit that `i` already is 16 from last loop
+        for (/* i = 16 */ ; i > 0; i--) {
+            text[i] = Sbox[text[i] >> 4] << 4 | Sbox[text[i] & 0xF];
+        }
+
+        //	****************** pLayer ******************************
+        for (i = 0; i < 16; i++) {
+            p_buf[i] = 0;
+        }
+
+        for (i = 0; i < 128; i++) {
+            // Ok then...
+            position = 4 * (i / 16) +
+                       32 * ((3 * ((i % 16) / 4) + (i % 4)) % 4) + (i % 4);
+
+            // To retain exact compatability with William Unger's version, this
+            // also treats the MSB as bit 0 and goes from there :|
+            elem_src          = (127 - position) / 8;
+            bit_src           = (127 - position) % 8;
+            elem_dest         = (127 - i) / 8;
+            bit_dest          = (127 - i) % 8;
+            p_buf[elem_dest] |= ((text[elem_src] >> bit_src) & 0x1) << bit_dest;
+        }
+
+        for (i = 0; i < 16; i++) {
+            text[i] = p_buf[i];
+        }
+
+        //	****************** Key Scheduling **********************
+        //		on-the-fly key generation
+        rot[0] = key[0];
+        rot[1] = key[1];
+        rot[2] = key[2];
+        rot[3] = key[3];
+
+        for (i = 0; i < 12; i++) {
+            key[i] = key[i + 4];
+        }
+
+        key[12] = (rot[1] >> 4) | (rot[0] << 4);
+        key[13] = (rot[0] >> 4) | (rot[1] << 4);
+        key[14] = (rot[2] >> 2) | (rot[3] << 6);
+        key[15] = (rot[3] >> 2) | (rot[2] << 6);
+
+    }
+
+    //	****************** addRoundkey *************************
+    round_key64(key, round, k);
+
+    for (i = 0; i < 16; i++) {
+        text[i] = text[i] ^ k[i];
+    }
+
     return 0;
 }
 
