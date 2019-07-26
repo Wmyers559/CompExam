@@ -75,6 +75,11 @@ round_key64(const uint8_t* key_state, uint8_t round, uint8_t* k)
     u[0] = key_state[2];
     u[1] = key_state[3];
 
+    // zero out previous round key
+    for (i = 0; i < 8; i++) {
+        k[i] = 0;
+    }
+
     // introduce keystate to the round key
     for (i = 0; i < 16; i++) {
         uint8_t j = 4 * i;
