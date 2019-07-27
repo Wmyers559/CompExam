@@ -184,24 +184,10 @@ encrypt(uint64_t in, uint64_t* subkey, uint16_t Rounds, _Bool Roundwise)
     uint16_t RoundNr;
     uint64_t text;
 
-    //if (Roundwise)
-        //v_enc_start(in);
-
     for (RoundNr = 1; RoundNr < Rounds; RoundNr++) { // Start "for"
         uint16_t temp;
 #define SboxNr temp
 #define PBit temp
-
-        //if (Roundwise)
-            //v_roundstart(RoundNr, subkey[RoundNr - 1]);
-
-        //----------------------------------
-        // Xor with roundkey
-        //----------------------------------
-        text = in ^ subkey[RoundNr - 1];
-
-        //if (Roundwise)
-            //v_after_xor(text);
 
         //----------------------------------
         // S-Boxes
@@ -215,9 +201,6 @@ encrypt(uint64_t in, uint64_t* subkey, uint16_t Rounds, _Bool Roundwise)
             text = rotate4l_64(text);   // next(rotate by one nibble)
         }
 
-        //if (Roundwise)
-            //v_after_s(text);
-
         //----------------------------------
         // P-Box
         //----------------------------------
@@ -227,15 +210,14 @@ encrypt(uint64_t in, uint64_t* subkey, uint16_t Rounds, _Bool Roundwise)
             out |= ((text >> (63 - Pbox[PBit])) & 1);
         }
 
-        //if (Roundwise)
-            //v_after_p(in);
+        //----------------------------------
+        // Xor with roundkey
+        //----------------------------------
+        text = in ^ subkey[RoundNr - 1];
 
     } // End "for"
 
-    text = in ^ subkey[RoundNr - 1];
-
-    //if (Roundwise)
-        //v_enc_final(text, subkey[RoundNr - 1]);
+    //text = in ^ subkey[RoundNr - 1];
 
     return text;
 }
@@ -252,38 +234,16 @@ encrypt128(uint64_t  inHigh,
 {
     uint64_t* retVal = (uint64_t*)malloc(2 * sizeof(uint64_t));
 
-// printf("rounds %u\n",Rounds);
-
 // note outHigh is the same is inHigh the same goes with low.
 #define outHigh inHigh
 #define outLow inLow
     uint16_t RoundNr;
-    uint64_t textHigh;
-    uint64_t textLow;
-
-    //if (Roundwise)
-        //v_enc_start128(inHigh, inLow);
+    uint64_t textHigh = inHigh;
+    uint64_t textLow  = inLow;
 
     for (RoundNr = 1; RoundNr < Rounds; RoundNr++) {
 
-        //uint16_t tempHigh;
-        //uint16_t tempLow;
         uint16_t temp;
-
-        // printf("Round %u round key %016"PRIx64" %016"PRIx64 "\n\n", RoundNr,
-        // subkey[2*(RoundNr-1)+1], subkey[2*(RoundNr-1)]);
-        //if (Roundwise)
-            //v_roundstart128(RoundNr,
-            //                subkey[2 * (RoundNr - 1) + 1],
-            //                subkey[2 * (RoundNr - 1)]);
-
-        textLow  = inLow ^ subkey[2 * (RoundNr - 1)];
-        textHigh = inHigh ^ subkey[2 * (RoundNr - 1) + 1];
-
-        //if (Roundwise)
-            //v_after_xor128(textHigh, textLow);
-        // printf("Encryption round %i key low index:%i key high index
-        // %i\n",RoundNr, (2*(RoundNr-1)),(2*(RoundNr-1)+1));
 
         for (SboxNr = 0; SboxNr < 16; SboxNr++) {
             uint16_t SboxValHigh;
@@ -302,13 +262,9 @@ encrypt128(uint64_t  inHigh,
             textHigh = rotate4l_64(textHigh);
             textLow = rotate4l_64(textLow); // next(rotate by one nibble)
         }
-        //if (Roundwise)
-            //v_after_s128(textHigh, textLow);
 
         outHigh = 0;
         outLow  = 0;
-
-        //uint8_t bitNum;
 
         // The four cases that they could permute differnetly form text to
         // output
@@ -333,19 +289,15 @@ encrypt128(uint64_t  inHigh,
                 }
             }
         }
-        //if (Roundwise)
-            //v_after_p128(inHigh, inLow);
-    }
-    // printf("Encryption final XOR round %i key low index:%i key high index
-    // %i\n",RoundNr, (2*(RoundNr-1)),(2*(RoundNr-1)+1));
-    retVal[0] = inLow ^ subkey[2 * (RoundNr - 1)];
-    retVal[1] = inHigh ^ subkey[2 * (RoundNr - 1) + 1];
 
-    //if (Roundwise)
-        //v_enc_final128(retVal[1],
-        //               retVal[0],
-        //               subkey[2 * (RoundNr - 1) + 1],
-        //               subkey[2 * (RoundNr - 1)]);
+        textLow  = inLow ^ subkey[2 * (RoundNr - 1)];
+        textHigh = inHigh ^ subkey[2 * (RoundNr - 1) + 1];
+    }
+    //retVal[0] = inLow ^ subkey[2 * (RoundNr - 1)];
+    //retVal[1] = inHigh ^ subkey[2 * (RoundNr - 1) + 1];
+    retVal[0] = inLow;
+    retVal[1] = inHigh;
+
 
     return retVal;
 }
