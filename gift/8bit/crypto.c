@@ -103,19 +103,23 @@ round_key64(const uint8_t* key_state, uint8_t round, uint8_t* k)
 uint8_t
 round_key128(const uint8_t* key_state, uint8_t* k)
 {
-    //TODO
     uint8_t i;
-    uint8_t u[2] = { 0 };
-    uint8_t v[2] = { 0 };
+    uint8_t u[4] = { 0 };
+    uint8_t v[4] = { 0 };
 
-    // V = k_0 , U = k_1 (16 bit words)
+    // V = k_1 || k_0 , U = k_5 || k_4 (16 bit words)
     v[0] = key_state[0];
     v[1] = key_state[1];
-    u[0] = key_state[2];
-    u[1] = key_state[3];
+    v[2] = key_state[2];
+    v[3] = key_state[3];
+
+    u[0] = key_state[8];
+    u[1] = key_state[9];
+    u[2] = key_state[10];
+    u[3] = key_state[11];
 
     // zero out previous round key
-    for (i = 0; i < 8; i++) {
+    for (i = 0; i < 16; i++) {
         k[i] = 0;
     }
 
