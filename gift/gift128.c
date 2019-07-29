@@ -6,6 +6,7 @@ Date: 23 Mar 2019
 */
 #include <stdint.h>
 #include <stdio.h>
+#include "crypto.h"
 
 /*Round constants*/
 const unsigned char GIFT_RC[40] = {
@@ -105,3 +106,49 @@ void giftb128(uint8_t P[16], const uint8_t K[16], uint8_t C[16]){
     C[15] = S[3];
 
 return;}
+
+void giftwrap(uint8_t P[16], const uint8_t K[16], uint8_t C[16]){
+    uint64_t plain_l = 0, plain_h = 0;
+
+    // unpack the input from the bitslice input format
+    for (uint8_t i = 0; i < 4; i++) {
+        for (uint8_t j = 0; j < 2; j++) {
+            for (int8_t k = 7; k >= 0; k--) {
+                plain_h |= (uint64_t)((P[4 * i + j]     >> k) & 0x1) << (32 + i - 32 * j + 4 * k);
+                plain_l |= (uint64_t)((P[4 * i + j + 2] >> k) & 0x1) << (32 + i - 32 * j + 4 * k);
+            }
+        }
+    }
+	uint8_t k[16];
+	for (uint8_t i = 0; i < 16; i++) {
+		k[i] = K[i];
+	}
+    for (uint8_t i = 0; i < 4; i++) {
+        uint8_t tmp;
+        uint8_t inv = 7 - i;
+        tmp         = k[i];
+        k[i]        = k[inv];
+        k[inv]      = tmp;
+
+        tmp        = k[i + 8];
+        k[i + 8]   = k[inv + 8];
+        k[inv + 8] = tmp;
+    }
+    uint64_t key_h = *((uint64_t *)k);
+    uint64_t key_l = *((uint64_t *)(k + 8));
+
+
+    uint64_t *keys = key_schedule128(key_h, key_l, 42, 0);
+    uint64_t *cyph = encrypt128(plain_h, plain_l, keys, 42, 0);
+
+    //repack the output
+    for (uint8_t i = 0; i < 4; i++) {
+        for (uint8_t j = 0; j < 2; j++) {
+            for (int8_t k = 7; k >= 0; k--) {
+                C[4 * i + j]     |= ((cyph[0] >> (32 + i - 32 * j + 4 * k)) & 0x1) << k;
+                C[4 * i + j + 2] |= ((cyph[1] >> (32 + i - 32 * j + 4 * k)) & 0x1) << k;
+            }
+        }
+    }
+    return;
+}

@@ -87,7 +87,8 @@ main(int argc, char** const argv)
                 *(uint64_t *)key       = Opt.KeyLow;
                 *(uint64_t *)(key + 8) = Opt.KeyHigh;
 
-                giftb128(txt, key, result);
+                //giftb128(txt, key, result);
+                giftwrap(txt, key, result);
 
                 for (uint8_t i = 0; i < 16; i++) {
                     printf("%02hhx", result[15 - i]);
@@ -110,7 +111,8 @@ main(int argc, char** const argv)
                     txt[15 - i] = t;
                 }
 
-                giftb128(txt, key, result);
+                //giftb128(txt, key, result);
+                giftwrap(txt, key, result);
 
                 for (uint8_t i = 0; i < 16; i++) {
                     printf("%02hhx", result[15 - i]);
