@@ -129,13 +129,13 @@ key_schedule128(uint64_t key_high,
         int j;
 
         for (j = 0; j < 16; j++) {
-            subkey[2 * i] = setBit(subkey[2 * i], getBit(U, j), (4 * j + 1));
-            subkey[2 * i] = setBit(subkey[2 * i], getBit(V, j), (4 * j));
+            subkey[2 * i] = setBit(subkey[2 * i], getBit(U, j), (4 * j + 2));
+            subkey[2 * i] = setBit(subkey[2 * i], getBit(V, j), (4 * j + 1));
             // Putting keystate into the subkey
             subkey[2 * i + 1] =
-              setBit(subkey[2 * i + 1], getBit(U, (j + 16)), (4 * j + 1));
+              setBit(subkey[2 * i + 1], getBit(U, (j + 16)), (4 * j + 2));
             subkey[2 * i + 1] =
-              setBit(subkey[2 * i + 1], getBit(V, (j + 16)), (4 * j));
+              setBit(subkey[2 * i + 1], getBit(V, (j + 16)), (4 * j + 1));
         }
 
         for (j = 0; j < 6; j++) {
