@@ -6,6 +6,7 @@ Date: 23 Mar 2019
 */
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "crypto.h"
 
 /*Round constants*/
@@ -114,11 +115,24 @@ void giftwrap(uint8_t P[16], const uint8_t K[16], uint8_t C[16]){
     for (uint8_t i = 0; i < 4; i++) {
         for (uint8_t j = 0; j < 2; j++) {
             for (int8_t k = 7; k >= 0; k--) {
+                //printf("adding bit %03d [%d] from plaintext byte %d [%02hhx]\n",
+                //       (32 + i - 32 * j + 4 * k + 64), (P[4*i + j]>>k) & 0x1, 4*i + j, P[4*i + j]);
                 plain_h |= (uint64_t)((P[4 * i + j]     >> k) & 0x1) << (32 + i - 32 * j + 4 * k);
                 plain_l |= (uint64_t)((P[4 * i + j + 2] >> k) & 0x1) << (32 + i - 32 * j + 4 * k);
             }
         }
     }
+    //Switch the bit order, because Will's stuff is silly.
+    /*
+    uint64_t temp1 = 0, temp2 = 0;
+    for (uint8_t i = 0; i<64; i++) {
+        temp1 |= ((plain_h >> i) & 0x1) << (63 - i);
+        temp2 |= ((plain_l >> i) & 0x1) << (63 - i);
+    }
+    plain_h = temp2;
+    plain_l = temp1;
+    */
+
 	uint8_t k[16];
 	for (uint8_t i = 0; i < 16; i++) {
 		k[i] = K[i];
@@ -134,21 +148,32 @@ void giftwrap(uint8_t P[16], const uint8_t K[16], uint8_t C[16]){
         k[i + 8]   = k[inv + 8];
         k[inv + 8] = tmp;
     }
+
+    /*
+    for (uint8_t i = 0; i < 8; i++) {
+        uint8_t tmp;
+        uint8_t inv = 2*i + 1;
+        tmp         = k[2*i];
+        k[2*i]      = k[inv];
+        k[inv]      = tmp;
+    }*/
     uint64_t key_h = *((uint64_t *)k);
     uint64_t key_l = *((uint64_t *)(k + 8));
 
 
-    uint64_t *keys = key_schedule128(key_h, key_l, 42, 0);
-    uint64_t *cyph = encrypt128(plain_h, plain_l, keys, 42, 0);
+    uint64_t *keys = key_schedule128(key_h, key_l, 40, 0);
+    uint64_t *cyph = encrypt128(plain_h, plain_l, keys, 40, 0);
 
     //repack the output
     for (uint8_t i = 0; i < 4; i++) {
         for (uint8_t j = 0; j < 2; j++) {
             for (int8_t k = 7; k >= 0; k--) {
-                C[4 * i + j]     |= ((cyph[0] >> (32 + i - 32 * j + 4 * k)) & 0x1) << k;
-                C[4 * i + j + 2] |= ((cyph[1] >> (32 + i - 32 * j + 4 * k)) & 0x1) << k;
+                C[4 * i + j]     |= ((cyph[1] >> (32 + i - 32 * j + 4 * k)) & 0x1) << k;
+                C[4 * i + j + 2] |= ((cyph[0] >> (32 + i - 32 * j + 4 * k)) & 0x1) << k;
             }
         }
     }
+    free(keys);
+    free(cyph);
     return;
 }

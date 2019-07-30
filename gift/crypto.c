@@ -116,7 +116,7 @@ key_schedule128(uint64_t key_high,
         keyState[i] = ((key_low >> (i * 16)) & 0xffff);
         keyState[i + 4] = ((key_high >> (i * 16)) & 0xffff);
     }
-    for (i = 0; i < Rounds; i++) {
+    for (i = 0; i < 40; i++) {
         subkey[2 * i]          = 0;
         subkey[(2 * i) + 1]    = 0;
         uint32_t U             = 0;
@@ -182,7 +182,7 @@ encrypt(uint64_t in, uint64_t* subkey, uint16_t Rounds, _Bool Roundwise)
 
 #define out in
     uint16_t RoundNr;
-    uint64_t text;
+    uint64_t text = in;
 
     for (RoundNr = 1; RoundNr < Rounds; RoundNr++) { // Start "for"
         uint16_t temp;
@@ -241,7 +241,7 @@ encrypt128(uint64_t  inHigh,
     uint64_t textHigh = inHigh;
     uint64_t textLow  = inLow;
 
-    for (RoundNr = 1; RoundNr < Rounds; RoundNr++) {
+    for (RoundNr = 0; RoundNr < 40; RoundNr++) {
 
         uint16_t temp;
 
@@ -290,8 +290,8 @@ encrypt128(uint64_t  inHigh,
             }
         }
 
-        textLow  = inLow ^ subkey[2 * (RoundNr - 1)];
-        textHigh = inHigh ^ subkey[2 * (RoundNr - 1) + 1];
+        textLow  = inLow  ^ subkey[2 * RoundNr];
+        textHigh = inHigh ^ subkey[2 * RoundNr + 1];
     }
     //retVal[0] = inLow ^ subkey[2 * (RoundNr - 1)];
     //retVal[1] = inHigh ^ subkey[2 * (RoundNr - 1) + 1];
