@@ -41,9 +41,9 @@ main(int argc, char** const argv)
     // Get Commandline Options
     comline_fetch_options(&Opt, argc, argv);
 
-    uint8_t txt[16];
-    uint8_t key[16];
-    uint8_t result[16];
+    uint8_t txt[16] = {0};
+    uint8_t key[16] = {0};
+    uint8_t result[16] = {0};
     *(uint64_t *)txt       = Opt.Text;
     *(uint64_t *)(txt + 8) = Opt.TextHigh;
     *(uint64_t *)key       = Opt.KeyLow;
