@@ -86,26 +86,24 @@ main(int argc, char** const argv)
                     printf("Starting encryption...\n");
                 result =
                   encrypt(Opt.Text, subkey, Opt.Rounds, (Opt.Verbose > 1));
-                  long counter = 1;
-                  int found = 0;
-                  uint64_t cycleComp = result;
-                  uint64_t newCycle = result;
-                  while (found == 0)
-                  {
-                      newCycle = encrypt(newCycle, subkey, Opt.Rounds, (Opt.Verbose > 1));
-                      if(newCycle == cycleComp)
-                      {
+                long     counter   = 1;
+                int      found     = 0;
+                uint64_t cycleComp = result;
+                uint64_t newCycle  = result;
+                while (found == 0) {
+                    newCycle =
+                      encrypt(newCycle, subkey, Opt.Rounds, (Opt.Verbose > 1));
+                    if (newCycle == cycleComp) {
                         printf("Cycle length %ld\n", counter);
-                        found  = 1;
-                      }
-                      if (counter % 5000000 == 0)
-                      {
+                        found = 1;
+                    }
+                    if (counter % 5000000 == 0) {
                         printf("Index at: %ld\n", counter);
-                      }
-                      counter++;
-                  }
-                  return 0;
-                  
+                    }
+                    counter++;
+                }
+                return 0;
+
                 if (Opt.Verbose != 0)
                     printf("Resulting Cipher: %016" PRIx64 " \n\n", result);
                 else

@@ -12,9 +12,11 @@
 #include <stdint.h>
 
 #define KEY_LENGTH 16
-#define DEFAULT_KEY {                               \
-    0x12, 0x34, 0x56, 0x78, 0x87, 0x65, 0x43, 0x21, \
-    0xab, 0xab, 0x12, 0x34, 0xdf, 0xec, 0x2f, 0x3c}
+#define DEFAULT_KEY                                                            \
+    {                                                                          \
+        0x12, 0x34, 0x56, 0x78, 0x87, 0x65, 0x43, 0x21, 0xab, 0xab, 0x12,      \
+          0x34, 0xdf, 0xec, 0x2f, 0x3c                                         \
+    }
 /*
 #define DEFAULT_KEY {                               \
     0x21, 0x43, 0x65, 0x87, 0x78, 0x56, 0x34, 0x12, \
@@ -43,7 +45,6 @@ decrypt128(uint64_t  inHigh,
            uint64_t* subkey,
            uint16_t  Rounds,
            _Bool     Roundwise);
-
 
 uint64_t*
 key_schedule(uint64_t key_high,
