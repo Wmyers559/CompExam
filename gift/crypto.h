@@ -44,7 +44,6 @@ decrypt128(uint64_t  inHigh,
            uint16_t  Rounds,
            _Bool     Roundwise);
 
-
 uint64_t*
 key_schedule(uint64_t key_high,
              uint64_t key_low,

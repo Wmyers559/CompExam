@@ -121,7 +121,9 @@ comline_fetch_options(struct Options* sOpt, int argc, char** const argv)
                     fseek(KeyFile, 0, SEEK_SET);
                     if (fscanf(KeyFile, "%016" SCNx64 "", &sOpt->KeyHigh) == 0)
                         sOpt->Error = 1;
-                    if (fscanf(KeyFile, "%04" SCNx16 "", (uint16_t*)&sOpt->KeyLow) == 0)
+                    if (fscanf(KeyFile,
+                               "%04" SCNx16 "",
+                               (uint16_t*)&sOpt->KeyLow) == 0)
                         sOpt->Error = 1;
                     sOpt->KeySize80 = 1;
                 } else {
@@ -169,7 +171,8 @@ comline_fetch_options(struct Options* sOpt, int argc, char** const argv)
                 sscanf(Opt_Key, "%016" SCNx64 "", &sOpt->KeyHigh); // get values
                 if (strlen(Opt_Key) == 20) { // set key + size
                     sOpt->KeySize80 = 1;
-                    sscanf(Opt_Key + 16, "%016" SCNx16 "", (uint16_t*)&sOpt->KeyLow);
+                    sscanf(
+                      Opt_Key + 16, "%016" SCNx16 "", (uint16_t*)&sOpt->KeyLow);
 
                 } else {
                     sOpt->KeySize80 = 0;
@@ -199,7 +202,7 @@ comline_fetch_options(struct Options* sOpt, int argc, char** const argv)
                 sOpt->Error = 1;
             }
 
-        // or use the standard parameters
+            // or use the standard parameters
         } else if (sOpt->BlockSize64) {
             sOpt->Rounds = 29;
         } else {
