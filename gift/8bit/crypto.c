@@ -125,7 +125,7 @@ round_key128(const uint8_t* key_state, uint8_t* k)
 
     // introduce keystate to the round key
     for (i = 0; i < 16; i++) {
-        uint8_t j = 4 * i;
+        uint8_t j = 4 * i + 1;
         k[j / 8] |= ((v[i / 8] >> (i % 8)) & 0x1) << (j % 8);
         k[(j + 1) / 8] |= ((u[i / 8] >> (i % 8)) & 0x1) << ((j + 1) % 8);
     }
@@ -280,12 +280,10 @@ encrypt128_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
             position = 4 * (i / 16) +
                        32 * ((3 * ((i % 16) / 4) + (i % 4)) % 4) + (i % 4);
 
-            // To retain exact compatability with William Unger's version, this
-            // also treats the MSB as bit 0 and goes from there :|
-            elem_src          = (127 - position) / 8;
-            bit_src           = (127 - position) % 8;
-            elem_dest         = (127 - i) / 8;
-            bit_dest          = (127 - i) % 8;
+            elem_src          = (position) / 8;
+            bit_src           = (position) % 8;
+            elem_dest         = (i) / 8;
+            bit_dest          = (i) % 8;
             p_buf[elem_dest] |= ((text[elem_src] >> bit_src) & 0x1) << bit_dest;
         }
 
