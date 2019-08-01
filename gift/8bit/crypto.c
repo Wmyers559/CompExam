@@ -184,6 +184,7 @@ encrypt_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
 
     do {
         //	****************** sBox ********************************
+        i = 8;
         do {
             i--;
             text[i] = Sbox[text[i] >> 4] << 4 | Sbox[text[i] & 0xF];
@@ -217,7 +218,7 @@ encrypt_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
         do {
             text[i] = text[i] ^ k[i];
             i++;
-        } while (i <= 7);
+        } while (i < 8);
 
         //	****************** Key Scheduling **********************
         //		on-the-fly key generation
@@ -265,8 +266,7 @@ encrypt128_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
     for (round = 0; round < Rounds; round++ ) {
 
         //	****************** sBox ********************************
-        //	Lazy here, exploit that `i` already is 16 from last loop
-        for (/* i = 16 */ ; i > 0; i--) {
+        for ( i = 16; i > 0; i--) {
             text[i] = Sbox[text[i] >> 4] << 4 | Sbox[text[i] & 0xF];
         }
 
