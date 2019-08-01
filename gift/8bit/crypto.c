@@ -183,14 +183,6 @@ encrypt_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
     uint8_t k[8] = { 0 };
 
     do {
-        round_key64((const uint8_t *)key, round, k);
-
-        //	****************** addRoundkey *************************
-        i = 0;
-        do {
-            text[i] = text[i] ^ k[i];
-            i++;
-        } while (i <= 7);
         //	****************** sBox ********************************
         do {
             i--;
@@ -219,6 +211,14 @@ encrypt_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
         }
         //	****************** End pLayer **************************
 
+        //	****************** addRoundkey *************************
+        round_key64((const uint8_t *)key, round, k);
+        i = 0;
+        do {
+            text[i] = text[i] ^ k[i];
+            i++;
+        } while (i <= 7);
+
         //	****************** Key Scheduling **********************
         //		on-the-fly key generation
         rot[0] = key[0];
@@ -239,14 +239,6 @@ encrypt_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
         //	****************** End Key Scheduling ******************
         round++;
     } while (round < Rounds);
-
-    //	****************** addRoundkey *************************
-    round_key64(key, round, k);
-    i = 0;
-    do { // final key XOR
-        text[i] = text[i] ^ k[i];
-        i++;
-    } while (i <= 7);
 
     return 0;
 }
@@ -271,13 +263,6 @@ encrypt128_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
 
 
     for (round = 0; round < Rounds; round++ ) {
-
-        round_key128((const uint8_t *)key, k);
-
-        //	****************** addRoundkey *************************
-        for (i = 0; i < 16; i++) {
-            text[i] = text[i] ^ k[i];
-        }
 
         //	****************** sBox ********************************
         //	Lazy here, exploit that `i` already is 16 from last loop
@@ -308,6 +293,12 @@ encrypt128_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
             text[i] = p_buf[i];
         }
 
+        //	****************** addRoundkey *************************
+        round_key128((const uint8_t *)key, k);
+        for (i = 0; i < 16; i++) {
+            text[i] = text[i] ^ k[i];
+        }
+
         //	****************** Key Scheduling **********************
         //		on-the-fly key generation
         rot[0] = key[0];
@@ -324,13 +315,6 @@ encrypt128_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
         key[14] = (rot[2] >> 2) | (rot[3] << 6);
         key[15] = (rot[3] >> 2) | (rot[2] << 6);
 
-    }
-
-    //	****************** addRoundkey *************************
-    round_key64(key, round, k);
-
-    for (i = 0; i < 16; i++) {
-        text[i] = text[i] ^ k[i];
     }
 
     return 0;
