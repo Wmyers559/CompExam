@@ -281,8 +281,8 @@ encrypt128(uint64_t  inHigh,
         textLow  = inLow  ^ subkey[2 * RoundNr];
         textHigh = inHigh ^ subkey[2 * RoundNr + 1];
     }
-    retVal[0] = inLow;
-    retVal[1] = inHigh;
+    retVal[0] = textLow;
+    retVal[1] = textHigh;
 
     return retVal;
 }
