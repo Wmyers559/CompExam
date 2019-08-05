@@ -373,15 +373,17 @@ encrypt128_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
 uint8_t
 e64_slice(uint8_t* state, uint8_t* key, uint16_t Rounds)
 {
-    uint16_t s[4];
-    uint16_t t[8]; 
+    uint16_t s[4];  /* Cypherstate */
+    uint16_t t[8];  /* Keystate */
 
+    /* Copy input into state arrays */
     for (uint8_t i = 0; i < 4; i++){
         s[i]     = ((uint16_t)state[2*i] << 8)     | state[2*i + 1];
         t[i]     = ((uint16_t)key[2*i] << 8)       | key[2*i + 1];
         t[i + 4] = ((uint16_t)key[2*(i + 4)] << 8) | key[2*(i + 4) + 1];
     } 
 
+    /* Perform the encryption for the specified number of rounds */
     for (uint8_t round = 0; round < Rounds; round++) {
         uint16_t temp;
 
@@ -420,7 +422,8 @@ e64_slice(uint8_t* state, uint8_t* key, uint16_t Rounds)
         t[7] = t1;
         t[6] = t0;
     }
-    
+
+    /* Copy output from state array */
     for (uint8_t i = 0; i < 4; i++) { 
         state[2*i]      = s[i] >> 8;
         state[2*i + 1] = s[i];
@@ -432,5 +435,65 @@ e64_slice(uint8_t* state, uint8_t* key, uint16_t Rounds)
 uint8_t
 e128_slice(uint8_t* state, uint8_t* key, uint16_t Rounds)
 {
+    uint32_t s[4];  /* Cypherstate */
+    uint16_t t[8];  /* Keystate */
+
+    /* Copy input into state arrays */
+    for (uint8_t i = 0; i < 4; i++){
+        s[i] = ((uint32_t)state[4*i + 0] << 24) | ((uint32_t)state[4*i + 1] << 16)
+             | ((uint32_t)state[4*i + 3] << 8)  | ((uint32_t)state[4*i + 1]);
+
+        t[i]     = ((uint16_t)key[2*i] << 8)       | key[2*i + 1];
+        t[i + 4] = ((uint16_t)key[2*(i + 4)] << 8) | key[2*(i + 4) + 1];
+    } 
+
+    /* Perform the encryption for the specified number of rounds */
+    for (uint8_t round = 0; round < Rounds; round++) {
+        uint32_t temp;
+
+        /* Sbox, as described in Appendix C of the GIFT specification */
+        s[1] ^= s[0] & s[2];
+        s[0] ^= s[1] & s[3];
+        s[2] ^= s[0] | s[1];
+        s[3] ^= s[2];
+        s[1] ^= s[3];
+        s[3] ^= 0xffffffff; // Invert
+        s[2] ^= s[0] & s[1];
+
+        temp = s[0];
+        s[0] = s[3];
+        s[3] = temp;
+
+        /* Permutation */
+        s[0] = rowperm32(s[0], 0, 3, 2, 1);
+        s[1] = rowperm32(s[1], 1, 0, 3, 2);
+        s[2] = rowperm32(s[2], 2, 1, 0, 3);
+        s[3] = rowperm32(s[3], 3, 2, 1, 0);
+
+        /* Key addition */
+        s[1] ^= ((uint32_t)t[1] << 16) | ((uint32_t)t[0]);
+        s[2] ^= ((uint32_t)t[5] << 16) | ((uint32_t)t[4]);
+        s[3] ^= 0x80000000 ^ constants_space(1,0);
+
+        /* Key State Update */
+        uint16_t t0, t1;
+        t0 = (t[0] << 4)  | (t[0] >> 12);
+        t1 = (t[1] << 14) | (t[1] >> 2);
+
+        for (uint8_t i = 2; i < 8; i++) {
+            t[i - 2] = t[i];
+        }
+        t[7] = t1;
+        t[6] = t0;
+    }
+
+    /* Copy output from state array */
+    for (uint8_t i = 0; i < 4; i++) { 
+        state[4*i]     = s[i] >> 24;
+        state[4*i + 1] = s[i] >> 16;
+        state[4*i + 2] = s[i] >> 8;
+        state[4*i + 3] = s[i];
+    }
+
     return 0;
 }
