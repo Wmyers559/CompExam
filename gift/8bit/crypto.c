@@ -124,7 +124,7 @@ round_key128(const uint8_t* key_state, uint8_t* k)
     }
 
     // introduce keystate to the round key
-    for (i = 0; i < 16; i++) {
+    for (i = 0; i < 32; i++) {
         uint8_t j = 4 * i + 1;
         k[j / 8] |= ((v[i / 8] >> (i % 8)) & 0x1) << (j % 8);
         k[(j + 1) / 8] |= ((u[i / 8] >> (i % 8)) & 0x1) << ((j + 1) % 8);
@@ -138,7 +138,7 @@ round_key128(const uint8_t* key_state, uint8_t* k)
     }
 
     // unconditionally set the upper bit on the round key
-    k[7] |= 0x80;
+    k[15] |= 0x80;
 
     return 0;
 }
@@ -266,7 +266,7 @@ encrypt128_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
     for (round = 0; round < Rounds; round++ ) {
 
         //	****************** sBox ********************************
-        for ( i = 16; i > 0; i--) {
+        for ( i = 0; i < 16; i++) {
             text[i] = Sbox[text[i] >> 4] << 4 | Sbox[text[i] & 0xF];
         }
 
@@ -280,10 +280,10 @@ encrypt128_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
             position = 4 * (i / 16) +
                        32 * ((3 * ((i % 16) / 4) + (i % 4)) % 4) + (i % 4);
 
-            elem_src          = (position) / 8;
-            bit_src           = (position) % 8;
-            elem_dest         = (i) / 8;
-            bit_dest          = (i) % 8;
+            elem_src          = (i) / 8;
+            bit_src           = (i) % 8;
+            elem_dest         = (position) / 8;
+            bit_dest          = (position) % 8;
             p_buf[elem_dest] |= ((text[elem_src] >> bit_src) & 0x1) << bit_dest;
         }
 
