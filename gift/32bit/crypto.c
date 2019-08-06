@@ -378,10 +378,12 @@ e64_slice(uint8_t* state, uint8_t* key, uint16_t Rounds)
 
     /* Copy input into state arrays */
     for (uint8_t i = 0; i < 4; i++){
-        s[i]     = ((uint16_t)state[2*i] << 8)     | state[2*i + 1];
-        t[i]     = ((uint16_t)key[2*i] << 8)       | key[2*i + 1];
-        t[i + 4] = ((uint16_t)key[2*(i + 4)] << 8) | key[2*(i + 4) + 1];
-    } 
+        s[i]     = ((uint16_t)state[2*i] << 8)  | state[2*i + 1];
+
+        /* Need to put in the key `backwards` to make the indicies match later */
+        t[i]     = ((uint16_t)key[14-2*i] << 8) | key[15-2*i];
+        t[i + 4] = ((uint16_t)key[6-2*i]  << 8) | key[7-2*i];
+    }
 
     /* Perform the encryption for the specified number of rounds */
     for (uint8_t round = 0; round < Rounds; round++) {
@@ -424,8 +426,8 @@ e64_slice(uint8_t* state, uint8_t* key, uint16_t Rounds)
     }
 
     /* Copy output from state array */
-    for (uint8_t i = 0; i < 4; i++) { 
-        state[2*i]      = s[i] >> 8;
+    for (uint8_t i = 0; i < 4; i++) {
+        state[2*i]     = s[i] >> 8;
         state[2*i + 1] = s[i];
     }
 
@@ -441,11 +443,12 @@ e128_slice(uint8_t* state, uint8_t* key, uint16_t Rounds)
     /* Copy input into state arrays */
     for (uint8_t i = 0; i < 4; i++){
         s[i] = ((uint32_t)state[4*i + 0] << 24) | ((uint32_t)state[4*i + 1] << 16)
-             | ((uint32_t)state[4*i + 3] << 8)  | ((uint32_t)state[4*i + 1]);
+             | ((uint32_t)state[4*i + 2] << 8)  | ((uint32_t)state[4*i + 3]);
 
-        t[i]     = ((uint16_t)key[2*i] << 8)       | key[2*i + 1];
-        t[i + 4] = ((uint16_t)key[2*(i + 4)] << 8) | key[2*(i + 4) + 1];
-    } 
+        /* Need to put in the key `backwards` to make the indicies match later */
+        t[i]     = ((uint16_t)key[14-2*i] << 8) | key[15-2*i];
+        t[i + 4] = ((uint16_t)key[6-2*i]  << 8) | key[7-2*i];
+    }
 
     /* Perform the encryption for the specified number of rounds */
     for (uint8_t round = 0; round < Rounds; round++) {
@@ -488,7 +491,7 @@ e128_slice(uint8_t* state, uint8_t* key, uint16_t Rounds)
     }
 
     /* Copy output from state array */
-    for (uint8_t i = 0; i < 4; i++) { 
+    for (uint8_t i = 0; i < 4; i++) {
         state[4*i]     = s[i] >> 24;
         state[4*i + 1] = s[i] >> 16;
         state[4*i + 2] = s[i] >> 8;
