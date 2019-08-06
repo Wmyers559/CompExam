@@ -322,6 +322,8 @@ e128_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
         for (i = 0, s[0] = 0, s[1] = 0, s[2] = 0, s[3] = 0; i < 8; i++) {
             s[0] |= Sbox[(state[0] >> (i * 4)) & 0xf] << (i * 4);
             s[1] |= Sbox[(state[1] >> (i * 4)) & 0xf] << (i * 4);
+            s[2] |= Sbox[(state[2] >> (i * 4)) & 0xf] << (i * 4);
+            s[3] |= Sbox[(state[3] >> (i * 4)) & 0xf] << (i * 4);
         }
 
         /**************** Permutation stage ****************/
