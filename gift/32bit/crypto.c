@@ -292,69 +292,79 @@ e128_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
     //  Counter
     uint8_t i = 0;
     //  p variables
-    uint8_t position  = 0;
-    uint8_t elem_src  = 0;
-    uint8_t bit_src   = 0;
-    uint8_t elem_dest = 0;
-    uint8_t bit_dest  = 0;
-    uint8_t p_buf[16];
+    uint8_t  pos       = 0;
+    uint8_t  elem_src  = 0;
+    uint8_t  bit_src   = 0;
+    uint8_t  elem_dest = 0;
+    uint8_t  bit_dest  = 0;
+    uint32_t p_buf[4];
     //  Key scheduling variables
-    uint8_t k[16]  = { 0 }; // Round key
-    uint8_t rot[4] = { 0 };
+    uint16_t rot[2] = { 0 };
+    //  Cypher/key state and round key
+    uint16_t keystate[8] = { 0 };
+    uint32_t state[4]    = { 0 };
+    uint32_t rk[4]       = { 0 };
 
-    uint8_t round  = 0;
+    /* Setup state */
+    for (i = 0; i < 16; i++) {
+        state[i / 4] |= (uint32_t)text[i] << ((i % 4) * 8);
+    }
 
+    for (i = 0; i < 8; i++) {
+        keystate[i] = ((uint16_t)key[2 * i + 1] << 8) | ((uint16_t)key[2 * i]);
+    }
 
-    for (round = 0; round < Rounds; round++ ) {
+    for (uint8_t round = 0; round < Rounds; round++) {
 
-        //  ****************** sBox ********************************
-        for ( i = 0; i < 16; i++) {
-            text[i] = Sbox[text[i] >> 4] << 4 | Sbox[text[i] & 0xF];
+        /**************** Sbox application ****************/
+        uint32_t s[4]; // Sbox results
+
+        for (i = 0, s[0] = 0, s[1] = 0, s[2] = 0, s[3] = 0; i < 8; i++) {
+            s[0] |= Sbox[(state[0] >> (i * 4)) & 0xf] << (i * 4);
+            s[1] |= Sbox[(state[1] >> (i * 4)) & 0xf] << (i * 4);
         }
 
-        //  ****************** pLayer ******************************
-        for (i = 0; i < 16; i++) {
-            p_buf[i] = 0;
-        }
+        /**************** Permutation stage ****************/
+        p_buf[0] = 0;
+        p_buf[1] = 0;
+        p_buf[2] = 0;
+        p_buf[3] = 0;
 
         for (i = 0; i < 128; i++) {
-            // Ok then...
-            position = 4 * (i / 16) +
-                       32 * ((3 * ((i % 16) / 4) + (i % 4)) % 4) + (i % 4);
+            pos = 4 * (i / 16) +
+                  32 * ((3 * ((i % 16) / 4) + (i % 4)) % 4) + (i % 4);
 
-            elem_src          = (i) / 8;
-            bit_src           = (i) % 8;
-            elem_dest         = (position) / 8;
-            bit_dest          = (position) % 8;
-            p_buf[elem_dest] |= ((text[elem_src] >> bit_src) & 0x1) << bit_dest;
+            elem_src  = (i) / 32;
+            bit_src   = (i) % 32;
+            elem_dest = (pos) / 32;
+            bit_dest  = (pos) % 32;
+
+            p_buf[elem_dest] |= ((s[elem_src] >> bit_src) & 0x1) << bit_dest;
         }
 
-        for (i = 0; i < 16; i++) {
-            text[i] = p_buf[i];
+        /******************** Key addition ********************/
+        round_key128(keystate, rk);
+        for (i = 0; i < 4; i++) {
+            state[i] = p_buf[i] ^ rk[i];
         }
 
-        //  ****************** addRoundkey *************************
-        round_key128((const uint8_t *)key, k);
-        for (i = 0; i < 16; i++) {
-            text[i] = text[i] ^ k[i];
+        /******************* Key scheduling *******************/
+
+        rot[0] = keystate[0];
+        rot[1] = keystate[1];
+
+        for ( i = 0; i < 6; i++) {
+            keystate[i] = keystate[i + 2];
         }
+        keystate[6] = (rot[0] >> 12) | (rot[0] << 4);
+        keystate[7] = (rot[1] >>  2) | (rot[1] << 14);
+    }
 
-        //  ****************** Key Scheduling **********************
-        //      on-the-fly key generation
-        rot[0] = key[0];
-        rot[1] = key[1];
-        rot[2] = key[2];
-        rot[3] = key[3];
-
-        for (i = 0; i < 12; i++) {
-            key[i] = key[i + 4];
-        }
-
-        key[12] = (rot[1] >> 4) | (rot[0] << 4);
-        key[13] = (rot[0] >> 4) | (rot[1] << 4);
-        key[14] = (rot[2] >> 2) | (rot[3] << 6);
-        key[15] = (rot[3] >> 2) | (rot[2] << 6);
-
+    for (i = 0; i < 4; i++) {
+        text[4 * i + 3] = state[i] >> 24;
+        text[4 * i + 2] = state[i] >> 16;
+        text[4 * i + 1] = state[i] >> 8;
+        text[4 * i + 0] = state[i];
     }
 
     return 0;
