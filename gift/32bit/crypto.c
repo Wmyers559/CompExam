@@ -216,29 +216,29 @@ encrypt128(uint64_t inHigh, uint64_t inLow, uint64_t* subkey, uint16_t Rounds)
 uint8_t
 encrypt_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
 {
-    //	Counter
+    //  Counter
     uint8_t i = 0;
-    //	pLayer variables
+    //  pLayer variables
     uint8_t position            = 0;
     uint8_t element_source      = 0;
     uint8_t bit_source          = 0;
     uint8_t element_destination = 0;
     uint8_t bit_destination     = 0;
     uint8_t temp_pLayer[8];
-    //	Key scheduling variables
+    //  Key scheduling variables
     uint8_t rot[4] = { 0 };
     uint8_t round  = 0;
 
     uint8_t k[8] = { 0 };
 
     do {
-        //	****************** sBox ********************************
+        //  ****************** sBox ********************************
         i = 8;
         do {
             i--;
             text[i] = Sbox[text[i] >> 4] << 4 | Sbox[text[i] & 0xF];
         } while (i > 0);
-        //	****************** pLayer ******************************
+        //  ****************** pLayer ******************************
         for (i = 0; i < 8; i++) {
             temp_pLayer[i] = 0; // clearing of the temporary array temp_pLayer
         }
@@ -259,9 +259,9 @@ encrypt_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
         for (i = 0; i <= 7; i++) {
             text[i] = temp_pLayer[i];
         }
-        //	****************** End pLayer **************************
+        //  ****************** End pLayer **************************
 
-        //	****************** addRoundkey *************************
+        //  ****************** addRoundkey *************************
         round_key64((const uint8_t *)key, k);
         i = 0;
         do {
@@ -269,8 +269,8 @@ encrypt_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
             i++;
         } while (i < 8);
 
-        //	****************** Key Scheduling **********************
-        //		on-the-fly key generation
+        //  ****************** Key Scheduling **********************
+        //      on-the-fly key generation
         rot[0] = key[0];
         rot[1] = key[1];
         rot[2] = key[2];
@@ -286,7 +286,7 @@ encrypt_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
         key[14] = (rot[2] >> 2) | (rot[3] << 6);
         key[15] = (rot[3] >> 2) | (rot[2] << 6);
 
-        //	****************** End Key Scheduling ******************
+        //  ****************** End Key Scheduling ******************
         round++;
     } while (round < Rounds);
 
@@ -296,16 +296,16 @@ encrypt_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
 uint8_t
 encrypt128_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
 {
-    //	Counter
+    //  Counter
     uint8_t i = 0;
-    //	p variables
+    //  p variables
     uint8_t position  = 0;
     uint8_t elem_src  = 0;
     uint8_t bit_src   = 0;
     uint8_t elem_dest = 0;
     uint8_t bit_dest  = 0;
     uint8_t p_buf[16];
-    //	Key scheduling variables
+    //  Key scheduling variables
     uint8_t k[16]  = { 0 }; // Round key
     uint8_t rot[4] = { 0 };
 
@@ -314,12 +314,12 @@ encrypt128_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
 
     for (round = 0; round < Rounds; round++ ) {
 
-        //	****************** sBox ********************************
+        //  ****************** sBox ********************************
         for ( i = 0; i < 16; i++) {
             text[i] = Sbox[text[i] >> 4] << 4 | Sbox[text[i] & 0xF];
         }
 
-        //	****************** pLayer ******************************
+        //  ****************** pLayer ******************************
         for (i = 0; i < 16; i++) {
             p_buf[i] = 0;
         }
@@ -340,14 +340,14 @@ encrypt128_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
             text[i] = p_buf[i];
         }
 
-        //	****************** addRoundkey *************************
+        //  ****************** addRoundkey *************************
         round_key128((const uint8_t *)key, k);
         for (i = 0; i < 16; i++) {
             text[i] = text[i] ^ k[i];
         }
 
-        //	****************** Key Scheduling **********************
-        //		on-the-fly key generation
+        //  ****************** Key Scheduling **********************
+        //      on-the-fly key generation
         rot[0] = key[0];
         rot[1] = key[1];
         rot[2] = key[2];
