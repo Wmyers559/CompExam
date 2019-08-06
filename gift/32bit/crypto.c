@@ -203,7 +203,7 @@ encrypt128(uint64_t inHigh, uint64_t inLow, uint64_t* subkey, uint16_t Rounds)
 // cost of more computations. This does mangle the plaintext passed in, since
 // the result of the encryption is returned in-place
 uint8_t
-encrypt_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
+e64_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
 {
     //  Counter
     uint8_t i = 0;
@@ -221,23 +221,25 @@ encrypt_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
     uint32_t state[2]    = { 0 };
     uint32_t rk[2]       = { 0 };
 
-    /* Setup state (TODO! verify this!) */
-    state[0] = ((uint32_t)text[0] << 24) | ((uint32_t)text[1] << 16) |
-               ((uint32_t)text[2] << 8)  | ((uint32_t)text[3]);
-    state[1] = ((uint32_t)text[4] << 24) | ((uint32_t)text[5] << 16) |
-               ((uint32_t)text[6] << 8)  | ((uint32_t)text[7]);
+    /* Setup state */
+    state[0] = ((uint32_t)text[3] << 24) | ((uint32_t)text[2] << 16) |
+               ((uint32_t)text[1] << 8)  | ((uint32_t)text[0]);
+    state[1] = ((uint32_t)text[7] << 24) | ((uint32_t)text[6] << 16) |
+               ((uint32_t)text[5] << 8)  | ((uint32_t)text[4]);
 
     for (i = 0; i < 8; i++) {
-        keystate[i] = ((uint16_t)key[2 * i] << 8) | ((uint16_t)key[2 * i + 1]);
+        keystate[i] = ((uint16_t)key[2 * i + 1] << 8) | ((uint16_t)key[2 * i]);
     }
 
     for (uint8_t round = 0; round < Rounds; round++) {
 
         /**************** Sbox application ****************/
-        state[0] = (Sbox[state[0] >> 24] << 24) | (Sbox[state[0] >> 16] << 16) |
-                   (Sbox[state[0] >>  8] <<  8) | (Sbox[state[0] >>  0] <<  0);
-        state[1] = (Sbox[state[1] >> 24] << 24) | (Sbox[state[1] >> 16] << 16) |
-                   (Sbox[state[1] >>  8] <<  8) | (Sbox[state[1] >>  0] <<  0);
+        uint32_t tmp[2];
+
+        for (i = 0, tmp[0] = 0, tmp[1] = 0; i < 8; i++) {
+            tmp[0] |= Sbox[(state[0] >> (i * 4)) & 0xf] << (i * 4);
+            tmp[1] |= Sbox[(state[1] >> (i * 4)) & 0xf] << (i * 4);
+        }
 
         /**************** Permutation stage ****************/
         p_buf[0] = 0;
@@ -247,23 +249,20 @@ encrypt_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
             pos = 4 * (i / 16) +
                   16 * ((3 * ((i % 16) / 4) + (i % 4)) % 4) + (i % 4);
 
-            // This operates backwards for compatability with Will Unger's
-            // version
-            elem_src  = (63 - i) / 32;
-            bit_src   = (63 - i) % 32;
-            elem_dest = (63 - pos) / 32;
-            bit_dest  = (63 - pos) % 32;
+            // This operates doubly backwards for compatibility with Will
+            // Unger's version
+            elem_src  = (63 - pos) / 32;
+            bit_src   = (63 - pos) % 32;
+            elem_dest = (63 - i) / 32;
+            bit_dest  = (63 - i) % 32;
 
-            p_buf[elem_dest] |= ((state[elem_src] >> bit_src) & 0x1) << bit_dest;
+            p_buf[elem_dest] |= ((tmp[elem_src] >> bit_src) & 0x1) << bit_dest;
         }
-        state[0] = p_buf[0];
-        state[1] = p_buf[1];
-
 
         /******************** Key addition ********************/
         round_key64(keystate, rk);
-        state[0] = state[0] ^ rk[i];
-        state[1] = state[1] ^ rk[i];
+        state[0] = p_buf[0] ^ rk[0];
+        state[1] = p_buf[1] ^ rk[1];
 
         /******************* Key scheduling *******************/
 
@@ -277,18 +276,18 @@ encrypt_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
         keystate[7] = (rot[1] >>  2) | (rot[1] << 14);
     }
 
-    for (i = 0; i < 4; i++) {
-        text[4 * i + 0] = state[i] >> 24;
-        text[4 * i + 1] = state[i] >> 16;
-        text[4 * i + 2] = state[i] >> 8;
-        text[4 * i + 3] = state[i];
+    for (i = 0; i < 2; i++) {
+        text[4 * i + 3] = state[i] >> 24;
+        text[4 * i + 2] = state[i] >> 16;
+        text[4 * i + 1] = state[i] >> 8;
+        text[4 * i + 0] = state[i];
     }
 
     return 0;
 }
 
 uint8_t
-encrypt128_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
+e128_fly(uint8_t* text, uint8_t* key, uint16_t Rounds)
 {
     //  Counter
     uint8_t i = 0;
