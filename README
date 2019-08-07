@@ -1,0 +1,26 @@
+GIFT Implementation
+===================
+
+This is a implementation of the GIFT cryptosystem that originated from William
+Unger at Boise State University, and was expanded upon by Riley Myers at Idaho
+National Laboratory.
+
+
+You probably already know what you are doing if you are looking at this
+repository. The folders are reasonably descriptive, with the one exception of
+the `cofb` folder. This is the complete submission (and reference
+implementation) for round one of the NIST Lightweight Cryptography proposal.
+
+
+### Misc Notes
+
+* The implementation folders (`gift`, `giftBase3`) should have a `.clang_format`
+  file inside of them. This defines the code style of the project based off of
+  the Mozilla coding style guide (though it honestly is more of a loose
+  recommendation for this project). To automatically reformat your code, run
+  `clang-format -style=file -i <files to format>`
+* The `makefile` assumes that you have `clang` installed. If you need to use
+  GCC, you can edit the `makefile`
+* Related, the makefile recipies for ARM and AVR don't work. Sorry, they were
+  not necessary. For those targets, build the project through the
+  `simpleserial-gift` firmware.
